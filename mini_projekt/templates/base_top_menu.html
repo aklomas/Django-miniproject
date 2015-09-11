@@ -1,0 +1,21 @@
+{# depending on the value of the nbar, the correct item in the menu is selected as active #}
+<div class="ui large top fixed {{visibility}} {{parameters}} menu">
+  {# <a class="toc item">
+    <i class="sidebar icon"></i>
+   </a> #}
+  <div class="ui container">
+    <a href="{% url 'use_cases:index' %}" class="{% if nbar == 'home' %}active{% endif %} item">Home</a>
+    <a href="{% url 'use_cases:upload_image' %}" class="{% if nbar == 'upload_image' %}active{% endif %} item">Upload Image</a>
+    <a href="{% url 'use_cases:search_image' %}" class="{% if nbar == 'search_image' %}active{% endif %} item">Search Image</a>
+    <a href="{% url 'use_cases:show_image' %}" class="{% if nbar == 'show_image' %}active{% endif %} item">Show Image</a>
+    {# <div class="right menu">
+      <div class="item">
+        <a href="" class="ui button">Log in</a>
+      </div>
+      <div class="item">
+        <a href="" class="ui primary button">Sign Up</a>
+      </div>
+    </div> #}
+  </div>
+</div>
+

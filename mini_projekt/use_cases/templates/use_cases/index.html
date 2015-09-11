@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+
+{% block menu %}
+{% endblock menu %}
+
+
+{% block content %}
+  <div id="big-headder" class="ui inverted vertical masthead center aligned segment" style="-ms-flex:1;-webkit-flex:1;flex:1;">
+
+    <div class="ui container floating">
+      <div class="ui large secondary inverted pointing menu">
+        <a class="toc item">
+          <i class="sidebar icon"></i>
+        </a>
+        {# <div class="right item">
+          <a class="ui inverted button">Log in</a>
+          <a class="ui inverted button">Sign Up</a>
+        </div> #}
+      </div>
+    </div>
+
+    <div class="ui text container">
+      <h1 class="ui inverted header" style="-webkit-text-stroke: 0.04em white; font-weight:bold; color:#D22459">
+        Cloud Computing Group
+      </h1>
+      <h2>Try the use-cases below:</h2>
+      <div class="ui three buttons">
+        <a class="ui huge primary button" href="{% url 'use_cases:upload_image' %}">Upload Image</a>
+        <a class="ui huge primary button" href="{% url 'use_cases:search_image' %}">Search Image</a>
+        <a class="ui huge primary button" href="{% url 'use_cases:show_image' %}">Show Image</a>
+      </div>
+
+    </div>
+
+  </div>
+
+{% endblock content %}

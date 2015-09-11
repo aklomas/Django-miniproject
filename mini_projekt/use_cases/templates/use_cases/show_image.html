@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+
+{% block menu %}
+  {% include "base_top_menu.html" with nbar=nbar visibility="" parameters="pointing inverted"%}
+{% endblock menu %}
+
+
+{% block content %}
+
+
+  <div id="wrapper" style="-ms-flex:1;-webkit-flex:1;flex:1;">
+    <div class="ui vertical stripe segment">
+      <div class="ui middle aligned stackable grid container">
+
+        <div  class="row" id="results">
+        </div>
+
+        <div class="row">
+            <div class="ui two column center aligned very relaxed stackable grid">
+              <div class="seven wide column">
+                <form class="ui form" id="id_form" action="{% url 'use_cases:show_image' %}" method="post">
+                  {% csrf_token %}
+                  <h4 class="ui header">Enter Ids of wanted images:</h4>
+                  <input id="id_text" name="id_text" type="text">
+                  <br/><br/>
+                  <label for="id_submit"  class="ui big fluid blue labeled icon button" type="submit" value="Submit">
+                    <input  id="id_submit" type="submit" value="Submit" style="display:none;"/>
+                    <i class="tag icon"></i>
+                    Submit
+                  </label>
+                </form>
+
+              </div>
+              <div class="ui vertical divider">
+                Or
+              </div>
+              <div class="seven wide center aligned column">
+                <div class="ui big fluid blue labeled icon button" onclick="get_images()">
+                  <i class="tags icon"></i>
+                  Show all images
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <h2 id="dividing_header" class="ui dividing header center aligned" style="width:100%; display:none;">Results</h2>
+        <div class="center aligned row">
+          <div id="images_container" class="ui doubling stackable four cards"  style="width:inherit;">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+{% block script %}
+<script type="text/javascript">
+
+    // Handle the form submission.
+    $('#id_form').on('submit', function(event){
+        event.preventDefault();
+        if ($('#id_text').val() < 2) { // Simple error check, should be upgraded
+            $('#id_text').attr('placeholder', 'Please enter the Ids separated by whitespace');
+            return;
+        }
+        get_image();
+    });
+
+
+    // Called when specific images are required.
+    function get_image() {
+        $.ajax({
+            url : '',
+            type : 'POST',
+            data : { image_ids : $('#id_text').val() },
+            // Handle a successful response.
+            success : function(json) {
+                $('#id_text').val(''); // Remove the value from the input.
+                // console.log(json); // Log the returned json to the console.
+                if(json.length > 0) { // Proceed parsing the response.
+                    createCard(json); // For each element in returned json we create card, which shows the info about one image container.
+                }
+                else { // In case of empty response let the user know what happened.
+                    $('#images_container').empty();
+                    $('#dividing_header').attr('style', 'width:100%; display: block');
+                    $('#images_container').append("<p> No images to show :( </p>");
+                }
+            },
+            // Handle a non-successful response.
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // Add the error to the dom.
+                console.log(xhr.status + ": " + xhr.responseText); // Provide a bit more info about the error to the console.
+            }
+        });
+    }
+
+
+    // Called when all images are required.
+    function get_images() {
+        $.ajax({
+            url : '',
+            type : 'POST',
+            data : { is_all : 1 },
+            // Handle a successful response.
+            success : function(json) {
+                // console.log(json); // Log the returned json to the console.
+                if(json.length > 0) { // Proceed parsing the response.
+                    createCard(json); // For each element in returned json we create card, which shows the info about one image container.
+                }
+                else { // In case of empty response let the user know what happened.
+                    $('#images_container').empty();
+                    $('#dividing_header').attr('style', 'width:100%; display: block');
+                    $('#images_container').append("<p> No images to show :( </p>");
+                }
+            },
+            // Handle a non-successful response.
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // Add the error to the dom.
+                console.log(xhr.status + ": " + xhr.responseText); // Provide a bit more info about the error to the console.
+            }
+        });
+    }
+
+</script>
+{% endblock script %}

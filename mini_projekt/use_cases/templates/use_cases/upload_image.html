@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block menu %}
+  {% include "base_top_menu.html" with nbar=nbar visibility="" parameters="pointing inverted"%}
+{% endblock menu %}
+
+
+{% block content %}
+
+   <form class="ui form" action="{% url 'use_cases:upload_image' %}" method="post" enctype="multipart/form-data" style="-ms-flex:1;-webkit-flex:1;flex:1;">
+    {% csrf_token %}
+
+    <div class="ui vertical stripe segment">
+      <div class="ui middle aligned stackable grid container">
+
+        <div class="row">
+          <div class="center aligned column" id="header_placeholder">
+            <h3 class="ui header" id="header field">Upload your image here!</h3>
+            <p id="header text">Please provide as many information about the submitted picture as possible. Doing so you will help the community with providing high quality datasets to explore. Thank you! </p>
+            <p id="header id"></p>
+            <div id="form_errors">
+            {% if form.errors %}
+                <div class="ui inverted red segment">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-error">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-error">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+            </div>
+            <div class="ui indicating progress active" style="display:none" id="progress_bar">
+              <div class="bar">
+                <div class="progress"></div>
+              </div>
+              <div class="label">Uploading Files</div>
+            </div>
+            <h4 class="ui horizontal divider header">
+              <i class="bar chart icon"></i>
+              Specifications
+            </h4>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="six wide column">
+            <h4 class="ui header"> {{ form.di_imagefile.label }}</h4>
+            <div class="field">
+              <div class="ui fluid action input btn-file">
+                <input type="text" id="_id_di_imagefile">
+                <label for="id_di_imagefile" class="ui icon button">
+                   <i class="file outline icon"></i>
+                   {{ form.di_imagefile }}
+                </label>
+              </div>
+            </div>
+            <h4 class="ui header"> {{ form.di_type.label }}</h4>
+            <div class="field">
+              {{ form.di_type }}
+            </div>
+            <h4 class="ui header"> {{ form.di_fileformat.label }}</h4>
+            <div class="field">
+              {{ form.di_fileformat }}
+            </div>
+            <h4 class="ui header"> {{ form.di_operatingsystem.label }}</h4>
+            <div class="field">
+              {{ form.di_operatingsystem }}
+            </div>
+            <h4 class="ui header"> {{ form.di_SLA.label }}</h4>
+            <div class="field">
+              {{ form.di_SLA }}
+            </div>
+            <h4 class="ui header"> {{ form.di_version.label }}</h4>
+            <div class="ui fluid icon input">
+              {{ form.di_version }}
+              <i class="random icon"></i>
+            </div>
+            <h4 class="ui header"> {{ form.di_price.label }}</h4>
+            <div class="ui fluid icon input">
+              {{ form.di_price }}
+              <i class="euro icon"></i>
+            </div><br/><br/>
+            <div class="field">
+              <div class="ui toggle checkbox">
+                {{ form.di_encription }}
+                <label>{{ form.di_encription.label }}</label>
+              </div>
+            </div><br/>
+            <div class="field">
+              <div class="ui toggle checkbox">
+                {{ form.di_needsdatafile }}
+                <label>{{ form.di_needsdatafile.label }}</label>
+              </div>
+            </div><br/>
+            <div class="field">
+              <div class="ui toggle checkbox">
+                {{ form.di_obfuscation }}
+                <label>{{ form.di_obfuscation.label }}</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="seven wide right floated column">
+            <div class="field">
+              <img id= "thumbnail_image" class="ui fluid image" src={% static "use_cases/placeholder.png" %}>
+              <div class="ui fluid attached action input btn-file">
+                <input type="text" id="_id_di_picture" style="border-top-left-radius: 0px !important;">
+                <label for="id_di_picture" class="ui icon button" style="border-top-right-radius: 0px !important;">
+                   <i class="file image outline icon"></i>
+                   {{ form.di_picture }}
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              {{ form.di_description }}
+            </div>
+          </div>
+
+        </div>
+
+        <div class="row">
+          <div class="center aligned column">
+            <input class="ui submit huge button" type="submit" value="Submit" id="submit_button"/>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+
+{% endblock content %}
+{% block script %}
+<script type="text/javascript">
+
+    //Function which copies input image into image container.
+    function loadThumbnail(input) {
+        if (input[0].files && input[0].files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#thumbnail_image').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(input[0].files[0]);
+        }
+    }
+
+
+    $(document).ready(function() {
+
+        // Initiall set-up of the progress bar.
+        $('#progress_bar').progress({
+            text: {
+                active  : '{percent}% Uploaded',
+                success : 'Upload Complete!'
+            },
+        });
+
+        $('.form').ajaxForm({
+            // Prepare progress bar for upload and lock the submit button until the upload is finished.
+            beforeSend: function() {
+                window.scrollTo(0,0);
+                $('#progress_bar').attr('style','display:block');
+                var prev_complete = 0;
+                $('#submit_button').attr('disabled', true);
+
+            },
+            // During the upload update the progrss bar.
+            uploadProgress: function(event, position, total, percentComplete) {
+                if(prev_complete != percentComplete) {
+                    $('#progress_bar').progress('increment', percentComplete-prev_complete);
+                    prev_complete = percentComplete;
+                }
+            },
+            // Handle a successful response.
+            success : function(json) {
+                if(json.length) { // We got the html response - form errors.
+                    var elements = $(json);
+                    document.getElementById('form_errors').innerHTML = $('#form_errors', elements).html(); // Instead of reloading whole page we just coppy the errors.
+                    $('#submit_button').attr('disabled', false);
+                    $('#progress_bar').attr('style','display:none');
+                    window.scrollTo(0,0);
+                }
+                else { // We got confirmation on successful upload.
+                    document.getElementById('header field').innerHTML = "Success!";
+                    document.getElementById('header text').innerHTML = "Your image was saved to:    "+ json.location;
+                    document.getElementById('header id').innerHTML = "ID:      " +  json.id ;
+                    window.scrollTo(0,0);
+                    $('.form').trigger('reset');
+                    $('#thumbnail_image').attr('src', '{% static "use_cases/placeholder.png" %}');
+                    $('#submit_button').attr('disabled', false);
+                }
+            },
+            // Handle a non-successful response.
+            error : function(xhr,errmsg,err) {
+                $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    " <a href='#' class='close'>&times;</a></div>"); // Add the error to the dom.
+                console.log(xhr.status + ": " + xhr.responseText); // Provide a bit more info about the error to the console.
+            }
+        });
+    });
+
+
+    // File fields logic.
+    var fileExtentionRange = '.jpg .png .iso .dmg .fvd .img .ndif .qcow .udif .vdi .vhd .vmdk .wim .rar'; // Which types of files do we accept. Should be changed or upgraded to automatically fill the appropriate form fields.
+    var MAX_SIZE = 5000; // MB
+    $(document).on('change', '.btn-file :file', function() {
+        var file_btn = $(this); // File field in form.
+        var textbox = file_btn.parent().parent().find(':text'); // Text field in form. Our original file field is hidden for design purposes and this is acting instead of it for display.
+        // Prepare the request for next function.
+        if (navigator.appVersion.indexOf("MSIE") != -1) { // IE
+            var label = file_btn.val();
+            file_btn.trigger('fileselect', [ 1, label, 0 ]);
+        }
+        else {
+            var label = file_btn.val().replace(/\\/g, '/').replace(/.*\//, '');
+            var numFiles = file_btn.get(0).files ? file_btn.get(0).files.length : 1;
+            var size = file_btn.get(0).files[0].size;
+            file_btn.trigger('fileselect', [ numFiles, label, size, file_btn, textbox ]);
+        }
+    });
+
+    $('.btn-file :file').on('fileselect', function(event, numFiles, label, size, file_btn, textbox) {
+        var postfix = label.substr(label.lastIndexOf('.'));
+        if (fileExtentionRange.indexOf(postfix.toLowerCase()) > -1) { // Check the file extension.
+            if (size > 1024 * 1024 * MAX_SIZE ) { // Check the file size.
+                alert('max size：' + MAX_SIZE + ' MB.');
+                    file_btn.removeAttr('name'); // cancel upload file.
+            }
+            else { // If everything is OK write the file name into our text box.
+                textbox.val(label);
+                if ( file_btn.is($('#id_di_picture')) ) { // If the uploaded file is the thumbnail picture don't forget to change the thumbnail image.
+                    loadThumbnail(file_btn);
+                }
+
+            }
+        } else {
+            alert('Acceptable file types：' + fileExtentionRange);
+            file_btn.removeAttr('name'); // cancel upload file.
+        }
+    });
+
+</script>
+{% endblock script %}
