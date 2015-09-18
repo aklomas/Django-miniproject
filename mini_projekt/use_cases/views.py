@@ -92,7 +92,7 @@ class Upload_image(View):
     nbar = 'upload_image'
     template_name = 'use_cases/upload_image.html'
 
-    def uploadImage(request):
+    def uploadImage(self, request):
         uploaded_image = Image(pic=request.FILES['di_picture'],
                                DI=request.FILES['di_imagefile'])
         # JSON string below which will be sent to server as an upload request.
